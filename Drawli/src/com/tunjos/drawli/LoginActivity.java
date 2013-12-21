@@ -1,7 +1,5 @@
 package com.tunjos.drawli;
 
-import com.tunjos.drawli.R;
-
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -17,15 +15,21 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.firebase.client.Firebase;
+import com.firebase.simplelogin.enums.Error;
+import com.firebase.simplelogin.SimpleLogin;
+import com.firebase.simplelogin.SimpleLoginAuthenticatedHandler;
+import com.firebase.simplelogin.User;
+
 /**
  * Activity which displays a login screen to the user, offering registration as
  * well.
  */
 public class LoginActivity extends Activity {
-	/**
-	 * A dummy authentication store containing known user names and passwords.
-	 * TODO: remove after connecting to a real authentication system.
-	 */
+	private static String FIREBASE_URL = "https://drawapp.firebaseio.com/";
+	Firebase ref = new Firebase(FIREBASE_URL);
+	SimpleLogin authClient = new SimpleLogin(ref);
+	
 	private static final String[] DUMMY_CREDENTIALS = new String[] {
 			"foo@example.com:hello", "bar@example.com:world" };
 
@@ -209,13 +213,17 @@ public class LoginActivity extends Activity {
 				return false;
 			}
 
-			for (String credential : DUMMY_CREDENTIALS) {
-				String[] pieces = credential.split(":");
-				if (pieces[0].equals(mEmail)) {
-					// Account exists, return true if the password matches.
-					return pieces[1].equals(mPassword);
-				}
-			}
+			authClient.loginWithEmail(mEmail, mPassword, new SimpleLoginAuthenticatedHandler() {
+				@Override  
+				public void authenticated(Error error, User user) {
+				    if(error != null) {
+				      // There was an error logging into this account
+				    }
+				    else {
+				      // We are now logged in
+				    }
+				  }
+				});
 
 			// TODO: register the new account here.
 			return true;

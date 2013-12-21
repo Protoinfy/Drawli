@@ -29,10 +29,12 @@ public class MainActivity extends Activity {
 			public void onClick(View view) {
 				switch (view.getId()) {
 				case R.id.signup_button:
-					Intent signupIntent = new Intent(getApplicationContext(), HomeActivity.class);
+					Intent signupIntent = new Intent(getApplicationContext(), SignUpActivity.class);
 					startActivity(signupIntent);
 					break;
 				case R.id.signin_button:
+					Intent signinpIntent = new Intent(getApplicationContext(), LoginActivity.class);
+					startActivity(signinpIntent);
 					break;
 				default:
 					break;

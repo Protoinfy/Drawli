@@ -1,37 +1,40 @@
 package com.tunjos.drawli;
 
-import com.tunjos.drawli.R;
-
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.firebase.simplelogin.enums.Error;
+import com.firebase.client.Firebase;
+import com.firebase.simplelogin.SimpleLogin;
+import com.firebase.simplelogin.SimpleLoginAuthenticatedHandler;
+import com.firebase.simplelogin.User;
 
 /**
  * Activity which displays a login screen to the user, offering registration as
  * well.
  */
 public class SignUpActivity extends Activity {
-	/**
-	 * A dummy authentication store containing known user names and passwords.
-	 * TODO: remove after connecting to a real authentication system.
-	 */
+	private static String FIREBASE_URL = "https://drawapp.firebaseio.com/";
+	Firebase ref = new Firebase(FIREBASE_URL);
+	SimpleLogin authClient = new SimpleLogin(ref);
+	
 	private static final String[] DUMMY_CREDENTIALS = new String[] {
 			"foo@example.com:hello", "bar@example.com:world" };
-
-	/**
-	 * The default email to populate the email field with.
-	 */
 	public static final String EXTRA_EMAIL = "com.example.android.authenticatordemo.extra.EMAIL";
 
 	/**
@@ -79,7 +82,7 @@ public class SignUpActivity extends Activity {
 		mLoginStatusView = findViewById(R.id.login_status);
 		mLoginStatusMessageView = (TextView) findViewById(R.id.login_status_message);
 
-		findViewById(R.id.sign_in_button).setOnClickListener(
+		findViewById(R.id.sign_up_button).setOnClickListener(
 				new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
@@ -193,14 +196,10 @@ public class SignUpActivity extends Activity {
 		}
 	}
 
-	/**
-	 * Represents an asynchronous login/registration task used to authenticate
-	 * the user.
-	 */
 	public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+		Boolean loggedIn = false;
 		@Override
 		protected Boolean doInBackground(Void... params) {
-			// TODO: attempt authentication against a network service.
 
 			try {
 				// Simulate network access.
@@ -208,17 +207,27 @@ public class SignUpActivity extends Activity {
 			} catch (InterruptedException e) {
 				return false;
 			}
+			
+			authClient.createUser(mEmail, mPassword, new SimpleLoginAuthenticatedHandler() {
 
-			for (String credential : DUMMY_CREDENTIALS) {
-				String[] pieces = credential.split(":");
-				if (pieces[0].equals(mEmail)) {
-					// Account exists, return true if the password matches.
-					return pieces[1].equals(mPassword);
-				}
-			}
-
-			// TODO: register the new account here.
-			return true;
+				@Override
+				public void authenticated(Error error, User user) {
+				    if(error != null) {
+				      // There was an error creating this account
+				    	loggedIn = true;
+				    }
+				    else {
+				      // We are now logged in
+				    	loggedIn = false;
+				    }
+				  }
+			 
+				});
+Log.d("drawli", "l is" +loggedIn);
+			if (loggedIn)
+				return true;
+			else
+				return false;
 		}
 
 		@Override
@@ -227,7 +236,9 @@ public class SignUpActivity extends Activity {
 			showProgress(false);
 
 			if (success) {
-				finish();
+				Toast.makeText(getApplicationContext(), "Sign Succesful", Toast.LENGTH_LONG).show();
+				Intent homeIntent = new Intent(getApplicationContext(), HomeActivity.class);
+				startActivity(homeIntent);
 			} else {
 				mPasswordView
 						.setError(getString(R.string.error_incorrect_password));
